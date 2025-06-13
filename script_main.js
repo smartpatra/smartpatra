@@ -14,6 +14,7 @@ class Issue {
   }
 }
 
+Chart.defaults.color = 'white';// Κάνει το κείμενο στα γραφήματα άσπρο
 //Translates issue categories
 const labelMap = {
   "garbage": "Σκουπίδια",
@@ -557,7 +558,7 @@ function drawPieChart(percentages) {
     type: 'pie',
     data: {
       // μετάφραση στα ελληνικά 
-      labels: Object.values(labelMap),//['Περιβάλλον', 'Οδικά Έργα', 'Πράσινο/φυτά', 'Απορρίμματα', 'Φωτισμός', 'Υδραυλικά', 'protection-policy(?)'],
+      labels: ['Περιβάλλον', 'Οδικά Έργα', 'Πράσινο/φυτά', 'Απορρίμματα', 'Φωτισμός', 'Υδραυλικά', 'protection-policy(?)'],
       // μετάφραση στα ελληνικά 
       datasets: [{
         data: [
@@ -683,7 +684,7 @@ function drawResolvedBarChart(resolutionPercent) {
       align: 'right',        
       offset: 16,
       formatter: value => `${value}%`,
-      color: '#000',
+      color: '#fff',
       font: {
         size: 30,
         weight: 'bold'
@@ -700,6 +701,14 @@ function getSelectedCategories() {
   return Array.from(document.querySelectorAll('#dropdownMenu input[type="checkbox"]:checked'))
     .map(input => input.value);
 }
+
+const today = new Date();
+const priorWeek = new Date();
+priorWeek.setDate(today.getDate() - 7);
+const formatDate = (date) => date.toISOString().split('T')[0];
+$('#startDate').val(formatDate(priorWeek));
+$('#endDate').val(formatDate(today));
+
 
 document.querySelectorAll('#dropdownMenu input[type="checkbox"]').forEach(checkbox => {
   checkbox.addEventListener('change', () => {
@@ -729,7 +738,7 @@ function toggleStats() {
 function openStats() {
 
   document.getElementById("right-pane").classList.add("show");
-  document.getElementById('toggle').textContent = "->";
+  document.getElementById('toggle').style.transform = "scaleX(-1)";
   statsVisible = true;
 
   map.panBy([350, 0], { animate: true, duration: 0.5 });
@@ -753,7 +762,7 @@ function openStats() {
 
 function closeStats() {
   document.getElementById("right-pane").classList.remove("show");
-  document.getElementById('toggle').textContent = "<-";
+  document.getElementById('toggle').style.transform = "scaleX(1)";
   statsVisible = false;
   rightPane.style.width = '';
   map.panBy([-350, 0], { animate: true, duration: 0.5 });
