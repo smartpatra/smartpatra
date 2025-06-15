@@ -584,7 +584,7 @@ function drawPieChart(percentages) {
         tooltip: {
           callbacks: {
             label: function (context) {
-              return `${context.label}: ${context.parsed}%`;
+              return `${context.parsed}%`;
             }
           }
         }
