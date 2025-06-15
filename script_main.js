@@ -436,13 +436,13 @@ function prepareChartData(countsByCategory, startDateStr, endDateStr) {
 }
 
 const labelColors = {
-  environment: 'rgba(54, 162, 235, 0.7)',
-  'road-constructor': 'rgba(255, 159, 64, 0.7)',
-  green: 'rgba(75, 192, 192, 0.7)',
-  garbage: 'rgba(255, 99, 132, 0.7)',
-  lighting: 'rgba(99, 255, 151, 0.7)',
-  plumbing: 'rgba(126, 60, 96, 0.7)',
-  'protection-policy': 'rgba(112, 165, 63, 0.7)'
+  environment: '#21B6A8',
+  'road-constructor': '#B95CF4',
+  green: '#A3EBB1',
+  garbage: '#8080FF',
+  lighting: '#ffff00',
+  plumbing: '#4caf50',
+  'protection-policy': '#FFC0CB'
 };
 
 function renderSharedLegend(containerId) {
