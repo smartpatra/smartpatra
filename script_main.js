@@ -668,7 +668,7 @@ function calculateResolutionRate(reports) {
   if (!reports.length) return 0;
 
   const resolved = reports.filter(r =>
-    r.status === "CONFIRMED"
+    r.status === "RESOLVED"
   ).length;
 
   console.log("Resolved count:", resolved);
