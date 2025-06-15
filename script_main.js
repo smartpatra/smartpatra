@@ -628,7 +628,7 @@ function drawResolvedBarChart(resolutionPercent) {
     data: {
       labels: ['Ποσοστό Επίλυσης'],
       datasets: [{
-        label: `Επίλυση (%):`,
+        label: `Επίλυση (%)`,
         data: [percentValue],
         backgroundColor: color,
         borderColor: border,
