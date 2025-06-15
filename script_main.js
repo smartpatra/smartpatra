@@ -315,6 +315,7 @@ async function loadAndRender() {
   if (statsVisible) {
     const countsByCategory = groupReportsByTimeBuckets(reports, startDate, endDate);
     const chartData = prepareChartData(countsByCategory, startDate, endDate);
+    renderSharedLegend('sharedLegend');
     drawChart(chartData, true);
 
     const percentages = calculatePercentages(reports);
@@ -434,6 +435,52 @@ function prepareChartData(countsByCategory, startDateStr, endDateStr) {
   };
 }
 
+const labelColors = {
+  environment: 'rgba(54, 162, 235, 0.7)',
+  'road-constructor': 'rgba(255, 159, 64, 0.7)',
+  green: 'rgba(75, 192, 192, 0.7)',
+  garbage: 'rgba(255, 99, 132, 0.7)',
+  lighting: 'rgba(99, 255, 151, 0.7)',
+  plumbing: 'rgba(126, 60, 96, 0.7)',
+  'protection-policy': 'rgba(112, 165, 63, 0.7)'
+};
+
+function renderSharedLegend(containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  container.style.display = 'flex';
+  container.style.flexWrap = 'wrap';
+  container.style.gap = '12px';
+  container.style.alignItems = 'center';
+
+  const rightPaneWidth = document.getElementById('right-pane').offsetWidth;
+
+  // Base font size calculation: scale proportionally (you can adjust the divisor)
+  const fontSizePx = Math.max(10, rightPaneWidth / 30); // Ensures minimum font size
+
+  Object.keys(labelMap).forEach(key => {
+    const legendItem = document.createElement('div');
+    legendItem.style.display = 'flex';
+    legendItem.style.alignItems = 'center';
+
+    const colorBox = document.createElement('span');
+    colorBox.style.backgroundColor = labelColors[key];
+    colorBox.style.width = fontSizePx * 0.8 + 'px';
+    colorBox.style.height = fontSizePx * 0.8 + 'px';
+    colorBox.style.display = 'inline-block';
+    colorBox.style.marginRight = fontSizePx * 0.2 + 'px';
+
+    const label = document.createElement('span');
+    label.textContent = labelMap[key];
+    label.style.fontSize = fontSizePx + 'px';
+
+    legendItem.appendChild(colorBox);
+    legendItem.appendChild(label);
+    container.appendChild(legendItem);
+  });
+}
+
 let myChart = null;
 
 // function to create graph
@@ -460,6 +507,7 @@ function drawChart(chartData, animate = true) {
       dataset.label = `${labelMap[match]} (${dataset.data.reduce((a, b) => a + b, 0)})`;
     }
   });
+
 // μετάφραση στα ελληνικά 
   myChart = new Chart(ctx, {
     type: 'line',
@@ -507,8 +555,7 @@ function drawChart(chartData, animate = true) {
       },
       plugins: {
         legend: {
-          display: true,
-          position: 'top'
+          display: false,
         },
         tooltip: {
           enabled: true,
@@ -595,7 +642,7 @@ function drawPieChart(percentages) {
       responsive: true,
       plugins: {
         legend: {
-          position: 'right',
+          display: false,
         },
         tooltip: {
           callbacks: {
@@ -718,6 +765,7 @@ document.querySelectorAll('#dropdownMenu input[type="checkbox"]').forEach(checkb
     const endDate = document.getElementById("endDate").value;
     const countsByCategory = groupReportsByTimeBuckets(reports, startDate, endDate);
     const filteredChartData = prepareChartData(countsByCategory, startDate, endDate);
+    renderSharedLegend('sharedLegend');
     drawChart(filteredChartData, false);
   });
 });
@@ -740,11 +788,13 @@ function openStats() {
   document.getElementById("right-pane").classList.add("show");
   document.getElementById('toggle').style.transform = "scaleX(-1)";
   statsVisible = true;
+document.getElementsByClassName("closebtn")[0].style.cursor = 'pointer';
+
 
   map.panBy([350, 0], { animate: true, duration: 0.5 });
 
   setTimeout(() => {
-
+    renderSharedLegend('sharedLegend');
     const percentages = calculatePercentages(reports);
     drawPieChart(percentages);
 
@@ -757,10 +807,19 @@ function openStats() {
     drawResolvedBarChart(resolutionPercent);
 
     document.getElementById("reports-title").style.display = "block";
+        document.getElementById("sharedLegend").style.display = "flex";
+        document.getElementsByClassName("closebtn").disabled = false;
+
   }, 400);
+  
+      dragHandle.style.pointerEvents = 'auto';
+    dragHandle.style.cursor = 'ew-resize';
 }
 
 function closeStats() {
+  if (!statsVisible)
+      return;
+document.getElementsByClassName("closebtn")[0].style.cursor = 'default';
   document.getElementById("right-pane").classList.remove("show");
   document.getElementById('toggle').style.transform = "scaleX(1)";
   statsVisible = false;
@@ -776,7 +835,10 @@ function closeStats() {
   window.myResolvedChart.destroy();
   window.myResolvedChart = null;
   document.getElementById("reports-title").style.display = "none";
+    document.getElementById("sharedLegend").style.display = "none";
 
+      dragHandle.style.pointerEvents = 'none';
+    dragHandle.style.cursor = 'default';
 }
 
 const rightPane = document.getElementById('right-pane');
@@ -787,8 +849,8 @@ let startX = 0;
 let startWidth = 0;
 
 const screenWidth = screen.width;
-const MIN_WIDTH = 0.17 * screenWidth;
-const MAX_WIDTH = 0.225 * screenWidth;
+const MIN_WIDTH = 0.195 * screenWidth;
+const MAX_WIDTH = 0.34 * screenWidth;
 
 dragHandle.addEventListener('mousedown', (e) => {
   isDragging = true;
@@ -814,12 +876,12 @@ document.addEventListener('mousemove', (e) => {
   if (newWidth > MAX_WIDTH) newWidth = MAX_WIDTH;
 
   rightPane.style.width = `${newWidth}px`;
-
+renderSharedLegend('sharedLegend');
   setTimeout(() => {
     const buttons = document.querySelectorAll('button');
 
     buttons.forEach(btn => {
-      if (rightPane.offsetWidth > (0.205 * screenWidth)) {
+      if (rightPane.offsetWidth > (0.28 * screenWidth)) {
         btn.style.paddingLeft = "2.5vh";
         btn.style.marginLeft = ".5vh";
         btn.style.marginRight = ".5vh";
@@ -909,6 +971,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       const countsByCategory = groupReportsByTimeBuckets(reports, startDate, endDate);
       const filteredChartData = prepareChartData(countsByCategory, startDate, endDate);
+      renderSharedLegend('sharedLegend');
       drawChart(filteredChartData, false);
 
       const percentages = calculatePercentages(reports);
