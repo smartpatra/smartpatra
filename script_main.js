@@ -25,19 +25,6 @@ const labelMap = {
   "road-constructor": 'Οδικά Έργα',
   "protection-policy": 'Θέματα ασφαλείας'
 };
-//Translates issue categories
-function translateCategories(category) {
-  // const labelMap = {
-  //   "garbage": "Σκουπίδια",
-  //   "lighting": "Φωτισμός",
-  //   "environment": "Περιβάλλον",
-  //   "green": "Πράσινο",
-  //   "plumbing": 'Υδραυλικά',
-  //   "road-constructor": 'Οδικά Έργα',
-  //   "protection-policy": 'Θέματα ασφαλείας'
-  // };
-  return labelMap[category]
-}
 
 //Loads custom marker icons depending on issue category
 function loadMarkerIcons() {
@@ -59,22 +46,7 @@ const city = "patras";
 let markers = [];
 let reports = [];
 
-
-// Function to fetch data from the API
-
-
-
-
-
-
-
-
-
-
-
-
-// ΝΕΑ GETDATA ΠΟΥ ΕΠΙΔΙΩΚΕΙ ΤΗΝ ΚΒΑΝΤΟΠΟΙΗΣΗ ΤΟΥ DATA APO TO REQUEST ΠΡΟΣ ΑΚΡΙΒΗ ΥΠΟΛΟΓΙΣΜΌ ΤΩΝ "CONFIRMED" REQUESTS (TO API EINAI SAPIO ME CAP 1000)
-// ALSO KANEI TOSES FORES REQUEST POU TO CPU PAEI BRRR και Η ΣΕΛΙΔΑ ΑΡΓΕΙ ΠΟΛΥ ΓΙΑ ΜΕΓΑΛΑ ΧΡΟΝΙΚΑ ΔΙΑΣΤΗΜΑΤΑ
+// ΝΕO GETDATA ΠΟΥ ΕΠΙΔΙΩΚΕΙ ΤΗΝ ΚΒΑΝΤΟΠΟΙΗΣΗ ΤΟΥ DATA APO TO REQUEST ΠΡΟΣ ΑΚΡΙΒΗ ΥΠΟΛΟΓΙΣΜΌ ΤΩΝ "CONFIRMED" REQUESTS
 async function getData(startdate, enddate, request_type) {
   const _data = [];
   const limit = 1000;
@@ -162,41 +134,6 @@ async function getData(startdate, enddate, request_type) {
 
   return dedupedData;
 }
-
-
-
-// async function getData(startdate, enddate, request_type) {
-//   const _data = [];
-//   try {
-//     const response = await fetch(
-//       `https://api.sense.city/api/1.0/${request_type}?startdate=${startdate}&enddate=${enddate}&city=${city}`
-//     );
-//     const value = await response.json();
-//     for (const element of value) {
-//       const date = moment(element.create_at).format("DD-MM-YYYY");
-//       const loc = element.loc?.coordinates;
-//       if (loc?.length === 2) {
-//         _data.push(
-//           new Issue(
-//             element.issue,
-//             element.value_desc || "",
-//             element.comments || "",
-//             date,
-//             loc,
-//             element.status,
-//             `https://api.sense.city/api/1.0/image_issue?bug_id=${element.bug_id}&resolution=full`,
-//             element.bug_id
-//           )
-//         );
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Error fetching data:", error);
-//   }
-//   return _data;
-// }
-
-
 
 // Function for the Filters button
 function toggleDropdown() {
@@ -497,16 +434,6 @@ function drawChart(chartData, animate = true) {
   if (myChart) {
     myChart.destroy();
   }
-  // μετάφραση στα ελληνικά 
-  // const greekLabels = {
-  //   environment: 'Περιβάλλον',
-  //   'road-constructor': 'Οδικά Έργα',
-  //   green: 'Πράσινο/φυτά',
-  //   garbage: 'Απορρίμματα',
-  //   lighting: 'Φωτισμος',
-  //   plumbing: 'Υδραυλικά',
-  //   'protection-policy': '(?)'
-  // };
   chartData.datasets.forEach(dataset => {
     const key = dataset.label.split(" ")[0]; // π.χ. "garbage"
     const match = Object.keys(labelMap).find(k => dataset.label.startsWith(k));
@@ -912,9 +839,7 @@ dragHandle.addEventListener('mouseleave', () => {
 });
 
 
-// SAVE & LOAD TA FILTERS + DATES που θελει ο user (μπορουμε να το βαλουμε σαν κουμπι με ενα floppy disk icon για να ειναι δίπλα στο date πχ)
-// +++++++++ Exoume θεμα με το οτι το να κανεις remove filters ΔΕΝ επιρεάζει πόσα issues ειναι loaded αλλά μονο τα ποσα markers ειναι visible (νμζω δλδ)
-
+// SAVE & LOAD TA FILTERS + DATES που θελει ο user
 function persistFilters() {
   console.log("Saving filters...");
   const start = document.getElementById('startDate').value;
