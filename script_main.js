@@ -66,7 +66,7 @@ async function getData(startdate, enddate, request_type) {
 
       if (!value || value.length === 0) break;
 
-      // ⚠️ Αν το πρώτο batch είναι μεγάλο, split το range και return
+      // Αν το πρώτο batch είναι μεγάλο, split το range και return
       if (value.length >= limit && offset === 0) {
         const startDateObj = new Date(start);
         const endDateObj = new Date(end);
@@ -197,8 +197,7 @@ async function bind_popup_on_issue(marker, issue) {
   if (issue.comments == '') {
     buttonEnabled = 'disabled';
   }
-  if (issue.status == "IN_PROGRESS")
-  {
+  if (issue.status == "IN_PROGRESS") {
     status = "Προς επίλυση";
   }
   marker.bindPopup(`
@@ -238,6 +237,19 @@ async function bind_popup_on_issue(marker, issue) {
 async function loadAndRender() {
   const startDate = document.getElementById("startDate").value;
   const endDate = document.getElementById("endDate").value;
+  const test1 = localStorage.getItem('savedStartDate');
+  const test2 = localStorage.getItem('savedEndDate');
+  if (test1 === null || test2 === null) {
+    const today = new Date();
+    const priorWeek = new Date();
+    priorWeek.setDate(today.getDate() - 7);
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    $('#startDate').val(formatDate(priorWeek));
+    $('#endDate').val(formatDate(today));
+  }
+
+  // const startDate = document.getElementById("startDate").value;
+  // const endDate = document.getElementById("endDate").value;
   const marker_icons = loadMarkerIcons();
 
   reports = await getData(startDate, endDate, "issue");
@@ -246,15 +258,17 @@ async function loadAndRender() {
   markers = [];
 
   reports.forEach(report => {
-    const marker = L.marker([report.location[1], report.location[0]], { icon: marker_icons[report.issue] });
-    bind_popup_on_issue(marker, report);
-    marker.addTo(map);
-    marker.issueType = report.issue;
-    markers.push(marker);
+    if (report.status != 'RESOLVED') {
 
-    const totalReportsCount = reports.length;
-    document.getElementById('totalReports').textContent = `(${totalReportsCount} Τώρα)`;
+      const marker = L.marker([report.location[1], report.location[0]], { icon: marker_icons[report.issue] });
+      bind_popup_on_issue(marker, report);
+      marker.addTo(map);
+      marker.issueType = report.issue;
+      markers.push(marker);
 
+      const totalReportsCount = reports.length;
+      document.getElementById('totalReports').textContent = `(${totalReportsCount} Τώρα)`;
+    }
   });
 
   filterMarkersByDropdown();
@@ -295,8 +309,6 @@ function filterMarkersByDropdown() {
 async function initialize() {
   await loadAndRender();
 }
-
-
 
 // Function to get graph points
 function groupReportsByTimeBuckets(reports, startDateStr, endDateStr) {
@@ -341,12 +353,12 @@ function prepareChartData(countsByCategory, startDateStr, endDateStr) {
   const categories = ['environment', 'road-constructor', 'green', 'garbage', 'lighting', 'plumbing', 'protection-policy'];
   const colors = {
     environment: '#21B6A8',
-  'road-constructor': '#B95CF4',
-  green: '#A3EBB1',
-  garbage: '#8080FF',
-  lighting: '#ffff00',
-  plumbing: '#4caf50',
-  'protection-policy': '#FFC0CB'
+    'road-constructor': '#B95CF4',
+    green: '#A3EBB1',
+    garbage: '#8080FF',
+    lighting: '#ffff00',
+    plumbing: '#4caf50',
+    'protection-policy': '#FFC0CB'
   };
 
   const selectedCategories = getSelectedCategories();
@@ -445,7 +457,7 @@ function drawChart(chartData, animate = true) {
     }
   });
 
-// μετάφραση στα ελληνικά 
+  // μετάφραση στα ελληνικά 
   myChart = new Chart(ctx, {
     type: 'line',
     data: chartData,
@@ -584,7 +596,7 @@ function drawPieChart(percentages) {
         tooltip: {
           callbacks: {
             label: function (context) {
-              return `${context.parsed}%`;
+              return `${context.label}: ${context.parsed}%`;
             }
           }
         }
@@ -617,7 +629,7 @@ function drawResolvedBarChart(resolutionPercent) {
   }
 
 
-  let color = 'rgba(248, 7, 7, 0.7)';
+  let color = 'rgba(0, 255, 0)';
   let border = 'rgb(0, 0, 0)';
 
 
@@ -626,73 +638,153 @@ function drawResolvedBarChart(resolutionPercent) {
   window.myResolvedChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Ποσοστό Επίλυσης'],
+      labels: ['Ποσοστό Επίλυσης %'],
       datasets: [{
-        label: `Επίλυση (%)`,
+        label: '',
         data: [percentValue],
         backgroundColor: color,
         borderColor: border,
         borderWidth: 2,
         barThickness: 40,
-        maxBarThickness: 80, 
+        maxBarThickness: 80,
 
       }]
     },
-  options: {
-  responsive: true,
-  indexAxis: 'x',
-  scales: {
-    y: {
-      beginAtZero: true,
-      suggestedMax: 1.5, 
-      title: {
-        display: true,
-        text: '% Επιλυμένων Αναφορών'
+    options: {
+      responsive: true,
+      indexAxis: 'x',
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMax: 1.5,
+          title: {
+            display: true,
+            text: '% Επιλυμένων Αναφορών'
+          },
+          ticks: {
+            callback: value => `${value}%`,
+            color: '#ccc'
+          },
+          grid: {
+            color: 'rgb(255, 255, 255)'
+          }
+        },
+        x: {
+          display: false,
+        }
       },
-      ticks: {
-        callback: value => `${value}%`,
-        color: '#ccc'
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            return `Ποσοστό Επίλυσης: ${context.raw}%`;
+          }
+        }
       },
-      grid: {
-        color: 'rgba(255,255,255,0.05)'
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'right',
+          offset: 16,
+          formatter: value => `${value}%`,
+          color: '#fff',
+          font: {
+            size: 30,
+            weight: 'bold'
+          }
+        }
       }
     },
-    x: {
-      display: false
-    }
-  },
-  plugins: {
-    legend: { display: false },
-    datalabels: {
-      anchor: 'end',     
-      align: 'right',        
-      offset: 16,
-      formatter: value => `${value}%`,
-      color: '#fff',
-      font: {
-        size: 30,
-        weight: 'bold'
-      }
-    }
-  }
-},
     plugins: [ChartDataLabels]
   });
 }
+async function drawWeeklyResolutionComparisonChart() {
+  const today = new Date();
+  const resolutionRates = [];
+  const labels = [];
 
+  for (let i = 4; i >= 0; i--) {
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - i * 7 - today.getDay() + 1); // Start of week (Monday)
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Sunday)
 
+    const start = weekStart.toISOString().split("T")[0];
+    const end = weekEnd.toISOString().split("T")[0];
+    labels.push(`Εβδ. ${getWeekNumber(weekStart)}`);
+
+    const weeklyReports = await getData(start, end, "issue");
+    const resolvedCount = weeklyReports.filter(r => r.status === "RESOLVED").length;
+    const rate = weeklyReports.length > 0 ? (resolvedCount / weeklyReports.length * 100).toFixed(1) : 0;
+    resolutionRates.push(rate);
+  }
+
+  const ctx = document.getElementById("weeklyChangeChart").getContext("2d");
+  if (window.myWeeklyChangeChart) {
+    window.myWeeklyChangeChart.destroy();
+  }
+
+  window.myWeeklyChangeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Ποσοστό Επίλυσης',
+        data: resolutionRates,
+        backgroundColor: 'orange',
+        borderColor: 'orange',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: value => `${value}%`,
+            color: '#ccc'
+          },
+          grid: {
+            color: 'white'
+          },
+          title: {
+            display: true,
+            text: '% Επίλυσης'
+          }
+        },
+        x: {
+          ticks: {
+            color: '#ccc'
+          },
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw}%`
+          }
+        }
+      }
+    }
+  });
+}
+
+// Helper to get ISO week number
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return weekNum;
+}
 function getSelectedCategories() {
   return Array.from(document.querySelectorAll('#dropdownMenu input[type="checkbox"]:checked'))
     .map(input => input.value);
 }
-
-const today = new Date();
-const priorWeek = new Date();
-priorWeek.setDate(today.getDate() - 7);
-const formatDate = (date) => date.toISOString().split('T')[0];
-$('#startDate').val(formatDate(priorWeek));
-$('#endDate').val(formatDate(today));
-
 
 document.querySelectorAll('#dropdownMenu input[type="checkbox"]').forEach(checkbox => {
   checkbox.addEventListener('change', () => {
@@ -725,7 +817,7 @@ function openStats() {
   document.getElementById("right-pane").classList.add("show");
   document.getElementById('toggle').style.transform = "scaleX(-1)";
   statsVisible = true;
-document.getElementsByClassName("closebtn")[0].style.cursor = 'pointer';
+  document.getElementsByClassName("closebtn")[0].style.cursor = 'pointer';
 
 
   map.panBy([350, 0], { animate: true, duration: 0.5 });
@@ -742,21 +834,21 @@ document.getElementsByClassName("closebtn")[0].style.cursor = 'pointer';
     drawChart(chartData, true);
     const resolutionPercent = calculateResolutionRate(reports);
     drawResolvedBarChart(resolutionPercent);
-
+    drawWeeklyResolutionComparisonChart();
     document.getElementById("reports-title").style.display = "block";
-        document.getElementById("sharedLegend").style.display = "flex";
-        document.getElementsByClassName("closebtn").disabled = false;
+    document.getElementById("sharedLegend").style.display = "flex";
+    document.getElementsByClassName("closebtn").disabled = false;
 
   }, 400);
-  
-      dragHandle.style.pointerEvents = 'auto';
-    dragHandle.style.cursor = 'ew-resize';
+
+  dragHandle.style.pointerEvents = 'auto';
+  dragHandle.style.cursor = 'ew-resize';
 }
 
 function closeStats() {
   if (!statsVisible)
-      return;
-document.getElementsByClassName("closebtn")[0].style.cursor = 'default';
+    return;
+  document.getElementsByClassName("closebtn")[0].style.cursor = 'default';
   document.getElementById("right-pane").classList.remove("show");
   document.getElementById('toggle').style.transform = "scaleX(1)";
   statsVisible = false;
@@ -772,10 +864,10 @@ document.getElementsByClassName("closebtn")[0].style.cursor = 'default';
   window.myResolvedChart.destroy();
   window.myResolvedChart = null;
   document.getElementById("reports-title").style.display = "none";
-    document.getElementById("sharedLegend").style.display = "none";
+  document.getElementById("sharedLegend").style.display = "none";
 
-      dragHandle.style.pointerEvents = 'none';
-    dragHandle.style.cursor = 'default';
+  dragHandle.style.pointerEvents = 'none';
+  dragHandle.style.cursor = 'default';
 }
 
 const rightPane = document.getElementById('right-pane');
@@ -813,7 +905,7 @@ document.addEventListener('mousemove', (e) => {
   if (newWidth > MAX_WIDTH) newWidth = MAX_WIDTH;
 
   rightPane.style.width = `${newWidth}px`;
-renderSharedLegend('sharedLegend');
+  renderSharedLegend('sharedLegend');
   setTimeout(() => {
     const buttons = document.querySelectorAll('button');
 
@@ -914,6 +1006,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
       const resolutionPercent = calculateResolutionRate(reports);
       drawResolvedBarChart(resolutionPercent);
+
     });
   });
 });
