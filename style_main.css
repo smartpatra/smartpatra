@@ -152,8 +152,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 
 #right-pane {
-  background-color: #2b293c; /* dark slate */
-  color: #ffffff;            /* σχεδόν λευκό */
+  background-color: #002a56; 
+  color: #ffffff;        
   border-left: 2px solid #59677a; /* mid-gray border */
   font-family: 'Roboto', sans-serif;
   box-shadow: -3px 0 10px rgba(0, 0, 0, 0.3);
