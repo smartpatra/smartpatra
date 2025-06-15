@@ -85,7 +85,7 @@ async function getData(startdate, enddate, request_type) {
     let finished = false;
 
     while (!finished) {
-      const url = `https://api.sense.city/api/1.0/${request_type}?startdate=${start}&enddate=${end}&city=${city}&limit=${limit}&offset=${offset}`;
+      const url = `https://api.sense.city/api/1.0/${request_type}?startdate=${start}&enddate=${end}&city=${city}&limit=${limit}&offset=${offset}&status=RESOLVED,IN_PROGRESS,CONFIRMED`;
       const response = await fetch(url);
       const value = await response.json();
 
@@ -252,9 +252,14 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 async function bind_popup_on_issue(marker, issue) {
   let buttonEnabled = '';
+  let status = "Επιλύθηκε";
   const uniqueId = `comments-${Math.random().toString(36).substr(2, 9)}`;
   if (issue.comments == '') {
     buttonEnabled = 'disabled';
+  }
+  if (issue.status == "IN_PROGRESS")
+  {
+    status = "Προς επίλυση";
   }
   marker.bindPopup(`
   <div class="popup-container">
@@ -281,6 +286,8 @@ async function bind_popup_on_issue(marker, issue) {
     <div id="${uniqueId}" style="display:none">
       ${issue.comments}
     </div>
+    Κατάσταση: ${status}
+    <br>
     Αναφέρθηκε στις: ${issue.date}
   </div>
 `, { maxWidth: 200 });
