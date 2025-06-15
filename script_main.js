@@ -25,6 +25,9 @@ const labelMap = {
   "road-constructor": 'Οδικά Έργα',
   "protection-policy": 'Θέματα ασφαλείας'
 };
+function translateCategories(category) {
+  return labelMap[category]
+}
 
 //Loads custom marker icons depending on issue category
 function loadMarkerIcons() {
